@@ -61,7 +61,7 @@ public class Flappy {
     void planeja() {
 
 
-        if (TimeUtils.nanoTime()-flapTime>1500000){
+        if (TimeUtils.nanoTime()-flapTime>15500000){
             if (actual.equals(textures[0])) actual=textures[1];
             else actual= textures[0];
             flapTime= TimeUtils.nanoTime();
