@@ -2,6 +2,7 @@ package com.mygdx.bird;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
@@ -75,10 +76,8 @@ public class GameScreen implements Screen {
         deathBirdImage = new Texture(Gdx.files.internal("deathBird1.png"));
 
         // load the images
-        backgroundImage = new
-                Texture(Gdx.files.internal("background.png"));
 
-        // create the camera and the SpriteBatch
+                // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
         obstacles = new Array<Rectangle>();
@@ -189,7 +188,6 @@ public class GameScreen implements Screen {
         background.render(game.batch);
         lava.render(game.batch);
         flappy.render(game.batch);
-        game.batch.draw(backgroundImage, 0, 0);
         if (dead) {
             game.batch.draw(deathBirdImage, player.x, player.y);
             game.font.draw(game.batch, "Game Over", 800/2, 480/2);
@@ -273,7 +271,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-        backgroundImage.dispose();
         birdImage.dispose();
         pipeUpImage.dispose();
         pipeDownImage.dispose();
