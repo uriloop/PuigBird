@@ -9,28 +9,26 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 public class GameScreen implements Screen {
     final Bird game;
-    Texture backgroundImage;
+    Flappy flappy;
+    Lava lava;
     OrthographicCamera camera;
     Texture birdImage;
     Rectangle player;
     float speedy;
     float gravity;
+    float xVelocity;
+    Background background = new Background();
 
     public GameScreen(final Bird gam) {
         this.game = gam;
-
-        birdImage = new Texture(Gdx.files.internal("bird.png"));
-// create a Rectangle to logically represent the player
-        player = new Rectangle();
-        player.x = 200;
-        player.y = 480 / 2 - 45 / 2;
-        player.width = 64;
-        player.height = 45;
-
+        flappy = new Flappy();
+        speedy = 0;
+        gravity = 850f;
+        xVelocity = -30;
+        lava = new Lava();
 // load the images
 
-        backgroundImage = new
-                Texture(Gdx.files.internal("background.png"));
+
 // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
@@ -38,7 +36,15 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-// clear the screen with a color
+        background.update();
+        lava.update();
+
+        if (Gdx.input.isTouched()){
+            flappy.planeja();
+            gravity=600f;
+        }
+
+        speedy = flappy.update(speedy, gravity, xVelocity);
 
 // tell the camera to update its matrices.
         camera.update();
@@ -47,8 +53,9 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
 // begin a new batch
         game.batch.begin();
-        game.batch.draw(backgroundImage, 0, 0);
-        game.batch.draw(birdImage, player.x, player.y);
+        background.render(game.batch);
+        lava.render(game.batch);
+        flappy.render(game.batch);
         game.batch.end();
     }
 
