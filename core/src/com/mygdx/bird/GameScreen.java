@@ -2,7 +2,6 @@ package com.mygdx.bird;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
@@ -16,7 +15,8 @@ import java.util.Iterator;
 
 public class GameScreen implements Screen {
     final Bird game;
-    Texture backgroundImage;
+    Flappy flappy;
+    Lava lava;
     OrthographicCamera camera;
     Texture birdImage;
     Rectangle player;
@@ -36,8 +36,10 @@ public class GameScreen implements Screen {
     Rectangle falcon;
     boolean evilBird;
     Texture deathBirdImage;
-    
 
+
+    float xVelocity;
+    Background background = new Background();
 
     public GameScreen(final Bird gam) {
         // load the sound effects
@@ -52,6 +54,15 @@ public class GameScreen implements Screen {
         pipeUpImage = new Texture(Gdx.files.internal("pipe_up.png"));
         pipeDownImage = new Texture(Gdx.files.internal("pipe_down.png"));
         this.game = gam;
+        flappy = new Flappy();
+        speedy = 0;
+        gravity = 850f;
+        xVelocity = -30;
+        lava = new Lava();
+// load the images
+
+
+// create the camera and the SpriteBatch
         dead = false;
         gravity = 850f;
         birdImage = new Texture(Gdx.files.internal("bird.png"));
@@ -107,6 +118,15 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        background.update();
+        lava.update();
+
+        if (Gdx.input.isTouched()){
+            flappy.planeja();
+            gravity=600f;
+        }
+
+        speedy = flappy.update(speedy, gravity, xVelocity);
 
         if (dead) {
             game.lastScore = (int) score;
@@ -159,13 +179,16 @@ public class GameScreen implements Screen {
 
         }
 
-        // tell the camera to update its matrices.
+// tell the camera to update its matrices.
         camera.update();
-        // tell the SpriteBatch to render in the
-        // coordinate system specified by the camera.
+// tell the SpriteBatch to render in the
+// coordinate system specified by the camera.
         game.batch.setProjectionMatrix(camera.combined);
-        // begin a new batch
+// begin a new batch
         game.batch.begin();
+        background.render(game.batch);
+        lava.render(game.batch);
+        flappy.render(game.batch);
         game.batch.draw(backgroundImage, 0, 0);
         if (dead) {
             game.batch.draw(deathBirdImage, player.x, player.y);
