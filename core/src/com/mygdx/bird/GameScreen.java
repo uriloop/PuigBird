@@ -19,8 +19,7 @@ public class GameScreen implements Screen {
     Flappy flappy;
     Lava lava;
     OrthographicCamera camera;
-    Texture birdImage;
-    Rectangle player;
+
     float speedy;
     float speedyEvil;
     float gravity;
@@ -29,14 +28,12 @@ public class GameScreen implements Screen {
     Texture pipeDownImage;
     Array<Rectangle> obstacles;
     long lastObstacleTime;
-    long timeFromDeath;
     float score;
     Sound flapSound;
     Sound failSound;
     Texture falconImage;
     Rectangle falcon;
     boolean evilBird;
-    Texture deathBirdImage;
 
 
     float xVelocity;
@@ -66,18 +63,12 @@ public class GameScreen implements Screen {
 // create the camera and the SpriteBatch
         dead = false;
         gravity = 850f;
-        birdImage = new Texture(Gdx.files.internal("bird.png"));
         // create a Rectangle to logically represent the player
-        player = new Rectangle();
-        player.x = 200;
-        player.y = 480 / 2 - 45 / 2;
-        player.width = 64;
-        player.height = 45;
-        deathBirdImage = new Texture(Gdx.files.internal("deathBird1.png"));
+
 
         // load the images
 
-                // create the camera and the SpriteBatch
+        // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
         obstacles = new Array<Rectangle>();
@@ -120,59 +111,44 @@ public class GameScreen implements Screen {
         background.update();
         lava.update();
 
-        if (Gdx.input.isTouched()){
-            flappy.planeja();
-            gravity=600f;
-        }
 
         speedy = flappy.update(speedy, gravity, xVelocity);
+        if (Gdx.input.isTouched()) {
+            flappy.planeja();
+            speedy = 200;
+        }
 
-        if (dead) {
-            game.lastScore = (int) score;
-            if (game.lastScore > game.topScore)
-                game.topScore = game.lastScore;
-            failSound.play();
-            if (player.y>480+45) {
-                game.setScreen(new GameOverScreen(game));
-                dispose();
-            }else{
-                player.y+=2;
-                player.x-=0.5;
-            }
-        }else{
+        if (flappy.restart) {
+            game.setScreen(new GameOverScreen(game));
+            dispose();
+        }
 
-            if (player.y > 480 - 45) {
+
+            /*if (player.y > 480 - 45) {
                 player.y = 480 - 45;
                 speedy = 0;
             }
             if (player.y < 0 - 45) {
                 dead = true;
-               /* timeFromDeath= TimeUtils.nanoTime();*/
+               *//* timeFromDeath= TimeUtils.nanoTime();*//*
             }
+*/
+
+        //La puntuació augmenta amb el temps de joc
+        score += Gdx.graphics.getDeltaTime();
+        if (Gdx.input.justTouched()) {
+            speedy = 400f;
+            /*flapSound.play();*/
+        }
 
 
-            //La puntuació augmenta amb el temps de joc
-            score += Gdx.graphics.getDeltaTime();
-            if (Gdx.input.justTouched()) {
-                speedy = 400f;
-                /*flapSound.play();*/
-            }
-
-
-//Actualitza la posició del jugador amb la velocitat vertical
-            player.y += speedy * Gdx.graphics.getDeltaTime();
-            //Actualitza la velocitat vertical amb la gravetat
-            speedy -= gravity * Gdx.graphics.getDeltaTime();
-
-
-            if (player.overlaps(falcon)) {
-                dead = true;
-                /*timeFromDeath = TimeUtils.nanoTime();*/
-
-            }
-
+        if (flappy.box.overlaps(falcon)) {
+            dead = true;
+            /*timeFromDeath = TimeUtils.nanoTime();*/
 
         }
+
+
         if (evilBird) {
             falcon.x -= 200 * Gdx.graphics.getDeltaTime();
 
@@ -188,14 +164,10 @@ public class GameScreen implements Screen {
         background.render(game.batch);
         lava.render(game.batch);
         flappy.render(game.batch);
-        if (dead) {
-            game.batch.draw(deathBirdImage, player.x, player.y);
-            game.font.draw(game.batch, "Game Over", 800/2, 480/2);
-        } else {
 
-            game.batch.draw(birdImage, player.x, player.y);
-        }
-        for (int i = 0; i < obstacles.size; i++) {
+        for (
+                int i = 0;
+                i < obstacles.size; i++) {
             game.batch.draw(
                     i % 2 == 0 ? pipeUpImage : pipeDownImage,
                     obstacles.get(i).x, obstacles.get(i).y);
@@ -215,6 +187,7 @@ public class GameScreen implements Screen {
 
         // Comprova si cal generar un obstacle nou
         if (TimeUtils.nanoTime() - lastObstacleTime > 1500000000 && evilBird)
+
             spawnObstacle();
         else if (TimeUtils.nanoTime() - lastObstacleTime > 1500000000 && !evilBird) {
             if (Math.random() > 0.5f) {
@@ -223,6 +196,7 @@ public class GameScreen implements Screen {
                 spawnObstacle();
             }
         }
+
         // Mou els obstacles. Elimina els que estan fora de la pantalla
         // Comprova si el jugador colisiona amb un obstacle,
         // llavors game over
@@ -232,7 +206,7 @@ public class GameScreen implements Screen {
             tuberia.x -= 200 * Gdx.graphics.getDeltaTime();
             if (tuberia.x < -64)
                 iter.remove();
-            if (tuberia.overlaps(player)) {
+            if (tuberia.overlaps(flappy.box)) {
                 dead = true;
                 /*timeFromDeath = TimeUtils.nanoTime();*/
             }
@@ -244,7 +218,6 @@ public class GameScreen implements Screen {
         } else if (falcon.y < 400f && Math.random() > 0.95 && evilBird) {
             speedyEvil = 400f;
         }
-
 
 
     }
@@ -271,7 +244,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-        birdImage.dispose();
         pipeUpImage.dispose();
         pipeDownImage.dispose();
         failSound.dispose();
