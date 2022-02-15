@@ -22,16 +22,12 @@ public class Background {
         texture[0] = new Texture(Gdx.files.internal("background.png"));
         texture[1] = new Texture(Gdx.files.internal("background_llamp.png"));
         texture[2] = new Texture(Gdx.files.internal("background_vibra.png"));
-
         x=0;
         y=0;
         actual=texture[0];
-
-
     }
 
     public void update() {
-
         if (TimeUtils.nanoTime()-lastLlum>300&&TimeUtils.nanoTime()-lastLlamp>300)
         actual=texture[0];
         if (TimeUtils.nanoTime()-lastLlamp>Math.random()*150000000000l+100000000l){
@@ -42,16 +38,10 @@ public class Background {
             actual=texture[2];
             lastLlum=TimeUtils.nanoTime();
         }
-
-
-
-
     }
 
     public void render(SpriteBatch batch) {
-
         batch.draw(actual,x,y);
-
     }
 
 }
