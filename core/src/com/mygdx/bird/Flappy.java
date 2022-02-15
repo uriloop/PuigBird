@@ -65,7 +65,7 @@ public class Flappy {
                 restart = true;
             } else {
                 box.y += 2;
-                box.x -= 0.5;
+                box.x += 1;
             }
         }
         batch.draw(actual, box.x, box.y);
@@ -84,6 +84,8 @@ public class Flappy {
                 actual=textures[6];
             }else if (TimeUtils.nanoTime()-timeFromUll>9000000000l) timeFromUll=TimeUtils.nanoTime();  entra en conflicte amb les altres animacions hauria de ferlo en totes les opcions*/
             if (TimeUtils.nanoTime() - flapTime > 100000000l) actual = textures[0];
+
+
             if (Gdx.input.justTouched()) {
                 speedy = 400f;
                 flapeja();
@@ -99,6 +101,9 @@ public class Flappy {
                 planeigMoviment();
                 energiaPlaneig-=7;
             }
+            if (box.y+ box.height>480){
+                speedy=-50;
+            }
 
             speedy = actualitzarGravetat(speedy, gravity);
         }
@@ -108,6 +113,7 @@ public class Flappy {
     public void esCrema(){
         if (actual==textures[1])actual=textures[5];
         else if(actual==textures[0])actual=textures[4];
+        else if (actual==textures[2]||actual==textures[3]){}
         else actual=textures[5];
     }
 

@@ -20,7 +20,7 @@ public class GameOverScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
         game.font.draw(game.batch, "Game Over! ", 300, 300);
-        game.font.draw(game.batch, "Final Score: " + game.lastScore, 300, 180);
+        game.font.draw(game.batch, "Final Score: " + game.score, 300, 180);
         game.batch.end();
         if (Gdx.input.justTouched()) {
             game.setScreen(new MainMenuScreen(game));

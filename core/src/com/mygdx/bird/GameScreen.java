@@ -23,8 +23,8 @@ public class GameScreen implements Screen {
     float speedy;
     float speedyEvil;
     float gravity;
+    int score;
 
-    float score;
     Texture falconImage;
     Rectangle falcon;
     boolean evilBird;
@@ -42,7 +42,6 @@ public class GameScreen implements Screen {
         falcon = new Rectangle();
         falcon.width = 64;
         falcon.height = 45;
-        score = 0;
         this.game = gam;
         flappy = new Flappy();
         speedy = 0;
@@ -53,7 +52,7 @@ public class GameScreen implements Screen {
         camera.setToOrtho(false, 800, 480);
         obstacleTime = TimeUtils.nanoTime();
         obstacles = new Obstacles();
-
+        score = 0;
     }
 
 
@@ -67,9 +66,7 @@ public class GameScreen implements Screen {
 
     }
 
-    @Override
-    public void render(float delta) {
-
+    private void update() {
         background.update();
         lava.update();
         obstacles.update(xVelocity, obstacleTime);
@@ -81,12 +78,17 @@ public class GameScreen implements Screen {
         }
 */
         if (flappy.restart) {
+            game.score = score;
             game.setScreen(new GameOverScreen(game));
             dispose();
         }
+        if (!flappy.dead){
+            score += Gdx.graphics.getDeltaTime();
+
+        }
 
         //La puntuació augmenta amb el temps de joc
-        score += Gdx.graphics.getDeltaTime();
+
         flappy.setEnergiaPlaneig(1);
         if (flappy.box.overlaps(falcon)) {
             flappy.dead = true;
@@ -98,20 +100,61 @@ public class GameScreen implements Screen {
                 flappy.dead = true;
             }
         }
+        for (Obstacles.LavaCascada lava:
+             obstacles.lavaList) {
+            if (lava.box.overlaps(flappy.box)) flappy.dead= true;
+        }
         if (flappy.box.y < -62) flappy.dead = true;
         if (flappy.box.y < 25) {
             timeEsCrema = TimeUtils.nanoTime();
         }
         if (TimeUtils.nanoTime() - timeEsCrema < 5000000000l) {
             flappy.esCrema();
-        }else{
-            timeEsCrema=0;
+        } else {
+            timeEsCrema = 0;
         }
         if (evilBird) {
             falcon.x -= 200 * Gdx.graphics.getDeltaTime();
         }
+///////////
+        // Moviment de l'ocell enemic
+        if (evilBird) {
+            falcon.y += speedyEvil * Gdx.graphics.getDeltaTime();
+            speedyEvil -= gravity * Gdx.graphics.getDeltaTime();
+        }
 
+        // Comprova si cal generar un obstacle nou
+        if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && evilBird) {
+            obstacles.spawnObstaclePipes();
+            obstacleTime = TimeUtils.nanoTime();
+        } else if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && !evilBird) {
+            double random = Math.random();
+            if (random > 0.8) {
+                obstacles.spawnObstacleLava();
+            }else if (random >0.6){
+                spawnEvilBird();
+            }  else {
+                obstacles.spawnObstaclePipes();
+            }
+            obstacleTime = TimeUtils.nanoTime();
+
+        }
+        if (falcon.x < -64) evilBird = false;
+        if (falcon.y < 25 && evilBird) {
+            speedyEvil = 400f;
+        } else if (falcon.y < 400f && Math.random() > 0.95 && evilBird) {
+            speedyEvil = 400f;
+        }
+
+        ///////////
         camera.update();
+    }
+
+
+    @Override
+    public void render(float delta) {
+
+        update();
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
         ScreenUtils.clear(0.2f, 0, 0, 1);
@@ -127,36 +170,7 @@ public class GameScreen implements Screen {
         game.font.draw(game.batch, "Energy: " + (int) flappy.getEnergiaPlaneig(), 100, 470);
         game.batch.end();
 
-        // Moviment de l'ocell enemic
-        if (evilBird) {
-            falcon.y += speedyEvil * Gdx.graphics.getDeltaTime();
-            speedyEvil -= gravity * Gdx.graphics.getDeltaTime();
-        }
 
-        // Comprova si cal generar un obstacle nou
-        if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && evilBird) {
-            obstacles.spawnObstaclePipes();
-            obstacleTime = TimeUtils.nanoTime();
-        } else if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && !evilBird) {
-            double random=Math.random();
-            if (random > 0.59) {
-               obstacles.spawnObstacleLava();
-                obstacleTime = TimeUtils.nanoTime();
-
-            }else if (random >0.5){
-                spawnEvilBird();
-                obstacleTime = TimeUtils.nanoTime();
-            } else {
-                obstacles.spawnObstaclePipes();
-                obstacleTime = TimeUtils.nanoTime();
-            }
-        }
-        if (falcon.x < -64) evilBird = false;
-        if (falcon.y < 25 && evilBird) {
-            speedyEvil = 400f;
-        } else if (falcon.y < 400f && Math.random() > 0.95 && evilBird) {
-            speedyEvil = 400f;
-        }
     }
 
     @Override

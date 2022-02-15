@@ -17,7 +17,7 @@ public class Obstacles {
     Texture pipeUpImage;
     Texture pipeDownImage;
     Array<Rectangle> obstacles;
-    Array<Rectangle> lavaList;
+    Array<LavaCascada> lavaList;
     long timeForLavaFall;
 
     public Obstacles() {
@@ -49,12 +49,19 @@ public class Obstacles {
     }
 
     public void spawnObstacleLava() {
-        timeForLavaFall=TimeUtils.nanoTime();
+        timeForLavaFall = TimeUtils.nanoTime();
         Rectangle lava = new Rectangle();
-        lava.height = 475;
+        lava.height = 300;
         lava.width = 50;
         lava.x = 800;
-        lava.y=480;
+        if (Math.random()>0.5){
+            lava.y = -480;
+            lavaList.add(new LavaCascada(lava,(-250)+(int)Math.random()*-200));
+        }else{
+            lava.y = 480;
+
+            lavaList.add(new LavaCascada(lava, (250)+(int)Math.random()*200));
+        }
 
 
     }
@@ -67,18 +74,14 @@ public class Obstacles {
             if (tuberia.x < -64)
                 iter.remove();
         }
-        Iterator<Rectangle> iter2 = lavaList.iterator();
-        while (iter2.hasNext()) {
-            Rectangle lava = iter2.next();
-            lava.x -= 200 * Gdx.graphics.getDeltaTime();
-            if (TimeUtils.nanoTime()-timeForLavaFall>Math.random()*50000000){
 
-                lava.y -= 120*Gdx.graphics.getDeltaTime();
-            }
-            if (lava.x < -64)
+        Iterator<LavaCascada> iter2 = lavaList.iterator();
+        while (iter2.hasNext()) {
+            LavaCascada lava = iter2.next();
+            lava.update();
+            if (lava.box.x < -64|| lava.box.y<-800)
                 iter2.remove();
         }
-
 
     }
 
@@ -96,9 +99,30 @@ public class Obstacles {
                 int i = 0;
                 i < lavaList.size; i++) {
             batch.draw(
-                   lavaFall,
-                    lavaList.get(i).x, lavaList.get(i).y);
+                    lavaFall,
+                    lavaList.get(i).box.x, lavaList.get(i).box.y);
         }
     }
 
+    public class LavaCascada {
+        int vel;
+        Rectangle box;
+
+
+        public LavaCascada(Rectangle box, int vel) {
+            this.box = box;
+            this.vel = vel;
+        }
+
+        public void update() {
+
+            box.x -= 200 * Gdx.graphics.getDeltaTime();
+
+            box.y -= vel * Gdx.graphics.getDeltaTime();
+
+
+        }
+
+    }
 }
+

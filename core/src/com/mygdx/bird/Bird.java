@@ -9,23 +9,27 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 public class Bird extends Game {
 
-	SpriteBatch batch;
-	BitmapFont font;
-	int topScore;
-	int lastScore;
+    SpriteBatch batch;
+    BitmapFont font;
+    int topScore;
+    int lastScore;
+    int score;
 
-	public void create() {
-		batch = new SpriteBatch();
+    public void create() {
+        batch = new SpriteBatch();
 // Use LibGDX's default Arial font.
-		font = new BitmapFont();
-		this.setScreen(new MainMenuScreen(this));
-		topScore=0;
-		lastScore=0;
-	}
-	public void render() {
-		super.render(); // important!
-	}
-	public void dispose() {
-	}
+        font = new BitmapFont();
+        this.setScreen(new MainMenuScreen(this));
+        topScore = 0;
+        lastScore = 0;
+        score = 0;
+    }
+
+    public void render() {
+        super.render(); // important!
+    }
+
+    public void dispose() {
+    }
 }
 
