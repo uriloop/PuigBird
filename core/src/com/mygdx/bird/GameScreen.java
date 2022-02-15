@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -20,6 +21,8 @@ public class GameScreen implements Screen {
     Lava lava;
     OrthographicCamera camera;
 
+    Texture pauseT;
+    Rectangle pause;
     float speedy;
     float speedyEvil;
     float gravity;
@@ -35,8 +38,11 @@ public class GameScreen implements Screen {
     float xVelocity;
     Background background = new Background();
     private long timeEsCrema = 0;
+    private boolean jocPausat;
 
     public GameScreen(final Bird gam) {
+        pauseT = new Texture(Gdx.files.internal("pause.png"));
+
         evilBird = false;
         falconImage = new Texture(Gdx.files.internal("evilBird.png"));
         falcon = new Rectangle();
@@ -53,6 +59,12 @@ public class GameScreen implements Screen {
         obstacleTime = TimeUtils.nanoTime();
         obstacles = new Obstacles();
         score = 0;
+        pause = new Rectangle();
+        pause.y = 375;
+        pause.x = 700;
+        pause.height = 64;
+        pause.width = 64;
+
     }
 
 
@@ -67,85 +79,102 @@ public class GameScreen implements Screen {
     }
 
     private void update() {
-        background.update();
-        lava.update();
-        obstacles.update(xVelocity, obstacleTime);
+        if (jocPausat) {
 
-        speedy = flappy.update(speedy, gravity, xVelocity);
+        } else {
+            if (Gdx.input.justTouched()) {
+                Vector3 touchPos = new Vector3();
+                touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+                camera.unproject(touchPos);
+                // Ara touchPos conté les coordenades a on l'usuari ha tocat en x,y
+
+                if (touchPos.equals(pause)) {
+                    // Akí el que sigui que faci que pari
+                    pause();
+
+                }
+            }
+
+
+            background.update();
+            lava.update();
+            obstacles.update(xVelocity, obstacleTime);
+
+            speedy = flappy.update(speedy, gravity, xVelocity);
         /*if (Gdx.input.isTouched()) {
             flappy.planeja();
             speedy = 200;
         }
 */
-        if (flappy.restart) {
-            game.score = (int) score;
-            game.setScreen(new GameOverScreen(game));
-            dispose();
-        }
+            if (flappy.restart) {
+                game.score = (int) score;
+                game.setScreen(new GameOverScreen(game));
+                dispose();
+            }
 
-        if (!flappy.dead){
-            score += Gdx.graphics.getDeltaTime();
+            if (!flappy.dead) {
+                score += Gdx.graphics.getDeltaTime();
 
-        }
-        //La puntuació augmenta amb el temps de joc
+            }
+            //La puntuació augmenta amb el temps de joc
 
-        flappy.setEnergiaPlaneig(1);
-        if (flappy.box.overlaps(falcon)) {
-            flappy.dead = true;
-            /*timeFromDeath = TimeUtils.nanoTime();*/
-        }
-        for (Rectangle box :
-                obstacles.obstacles) {
-            if (box.overlaps(flappy.box)) {
+            flappy.setEnergiaPlaneig(1);
+            if (flappy.box.overlaps(falcon)) {
                 flappy.dead = true;
+                /*timeFromDeath = TimeUtils.nanoTime();*/
             }
-        }
-        for (Obstacles.LavaCascada lava:
-             obstacles.lavaList) {
-            if (lava.box.overlaps(flappy.box)) flappy.dead= true;
-        }
-        if (flappy.box.y < -62) flappy.dead = true;
-        if (flappy.box.y < 25) {
-            timeEsCrema = TimeUtils.nanoTime();
-        }
-        if (TimeUtils.nanoTime() - timeEsCrema < 5000000000l) {
-            flappy.esCrema();
-        } else {
-            timeEsCrema = 0;
-        }
-        if (evilBird) {
-            falcon.x -= 200 * Gdx.graphics.getDeltaTime();
-        }
+            for (Rectangle box :
+                    obstacles.obstacles) {
+                if (box.overlaps(flappy.box)) {
+                    flappy.dead = true;
+                }
+            }
+            for (Obstacles.LavaCascada lava :
+                    obstacles.lavaList) {
+                if (lava.box.overlaps(flappy.box)) flappy.dead = true;
+            }
+            if (flappy.box.y < -62) flappy.dead = true;
+            if (flappy.box.y < 25) {
+                timeEsCrema = TimeUtils.nanoTime();
+            }
+            if (TimeUtils.nanoTime() - timeEsCrema < 5000000000l) {
+                flappy.esCrema();
+            } else {
+                timeEsCrema = 0;
+            }
+            if (evilBird) {
+                falcon.x -= 200 * Gdx.graphics.getDeltaTime();
+            }
 ///////////
-        // Moviment de l'ocell enemic
-        if (evilBird) {
-            falcon.y += speedyEvil * Gdx.graphics.getDeltaTime();
-            speedyEvil -= gravity * Gdx.graphics.getDeltaTime();
-        }
-
-        // Comprova si cal generar un obstacle nou
-        if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && evilBird) {
-            obstacles.spawnObstaclePipes();
-            obstacleTime = TimeUtils.nanoTime();
-        } else if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && !evilBird) {
-            double random = Math.random();
-            if (random > 0.8) {
-                obstacles.spawnObstacleLava();
-            }else if (random >0.6){
-                spawnEvilBird();
-            }  else {
-                obstacles.spawnObstaclePipes();
+            // Moviment de l'ocell enemic
+            if (evilBird) {
+                falcon.y += speedyEvil * Gdx.graphics.getDeltaTime();
+                speedyEvil -= gravity * Gdx.graphics.getDeltaTime();
             }
-            obstacleTime = TimeUtils.nanoTime();
 
-        }
-        if (falcon.x < -64) evilBird = false;
-        if (falcon.y < 25 && evilBird) {
-            speedyEvil = 400f;
-        } else if (falcon.y < 400f && Math.random() > 0.95 && evilBird) {
-            speedyEvil = 400f;
-        }
+            // Comprova si cal generar un obstacle nou
+            if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && evilBird) {
+                obstacles.spawnObstaclePipes();
+                obstacleTime = TimeUtils.nanoTime();
+            } else if (TimeUtils.nanoTime() - obstacleTime > 1500000000 && !evilBird) {
+                double random = Math.random();
+                if (random > 0.8) {
+                    obstacles.spawnObstacleLava();
+                } else if (random > 0.6) {
+                    spawnEvilBird();
+                } else {
+                    obstacles.spawnObstaclePipes();
+                }
+                obstacleTime = TimeUtils.nanoTime();
 
+            }
+            if (falcon.x < -64) evilBird = false;
+            if (falcon.y < 25 && evilBird) {
+                speedyEvil = 400f;
+            } else if (falcon.y < 400f && Math.random() > 0.95 && evilBird) {
+                speedyEvil = 400f;
+            }
+        }
         ///////////
         camera.update();
     }
@@ -167,8 +196,9 @@ public class GameScreen implements Screen {
         if (evilBird) {
             game.batch.draw(falconImage, falcon.x, falcon.y);
         }
-        game.font.draw(game.batch, "Score: " + (int)score, 10, 470);
+        game.font.draw(game.batch, "Score: " + (int) score, 10, 470);
         game.font.draw(game.batch, "Energy: " + (int) flappy.getEnergiaPlaneig(), 100, 470);
+        game.batch.draw(pauseT, pause.x, pause.y);
         game.batch.end();
 
 

@@ -1,6 +1,7 @@
 package com.mygdx.bird;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
@@ -12,7 +13,7 @@ import java.sql.Time;
 public class Flappy {
 
     Texture[] textures;
-
+    Sound flap;
     Rectangle box;
     Texture actual;
     Long flapTime;
@@ -33,6 +34,7 @@ public class Flappy {
 
 
     public Flappy() {
+        flap= Gdx.audio.newSound(Gdx.files.internal("pickupCoin.wav"));
         energiaPlaneig = 1000;
         textures = new Texture[7];
         textures[0] = new Texture(Gdx.files.internal("bird.png"));
@@ -55,7 +57,7 @@ public class Flappy {
     }
 
     public void setEnergiaPlaneig(long energiaPlaneig) {
-        this.energiaPlaneig += energiaPlaneig;
+        if (this.energiaPlaneig<1000)  this.energiaPlaneig += energiaPlaneig;
     }
 
     public void render(SpriteBatch batch) {
@@ -67,6 +69,7 @@ public class Flappy {
                 box.y += 2;
                 box.x += 1;
             }
+            flap.dispose();
         }
         batch.draw(actual, box.x, box.y);
     }
@@ -132,6 +135,7 @@ public class Flappy {
     public void flapeja() {
         actual = textures[1];
         flapTime = TimeUtils.nanoTime();
+        flap.play();
     }
 
     void volaMort() {
