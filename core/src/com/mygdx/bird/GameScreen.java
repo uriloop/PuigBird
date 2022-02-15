@@ -23,7 +23,7 @@ public class GameScreen implements Screen {
     float speedy;
     float speedyEvil;
     float gravity;
-    int score;
+    float score;
 
     Texture falconImage;
     Rectangle falcon;
@@ -78,15 +78,15 @@ public class GameScreen implements Screen {
         }
 */
         if (flappy.restart) {
-            game.score = score;
+            game.score = (int) score;
             game.setScreen(new GameOverScreen(game));
             dispose();
         }
+
         if (!flappy.dead){
             score += Gdx.graphics.getDeltaTime();
 
         }
-
         //La puntuació augmenta amb el temps de joc
 
         flappy.setEnergiaPlaneig(1);
@@ -155,6 +155,7 @@ public class GameScreen implements Screen {
     public void render(float delta) {
 
         update();
+
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
         ScreenUtils.clear(0.2f, 0, 0, 1);
@@ -166,7 +167,7 @@ public class GameScreen implements Screen {
         if (evilBird) {
             game.batch.draw(falconImage, falcon.x, falcon.y);
         }
-        game.font.draw(game.batch, "Score: " + (int) score, 10, 470);
+        game.font.draw(game.batch, "Score: " + (int)score, 10, 470);
         game.font.draw(game.batch, "Energy: " + (int) flappy.getEnergiaPlaneig(), 100, 470);
         game.batch.end();
 
