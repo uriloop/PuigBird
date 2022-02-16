@@ -1,6 +1,8 @@
 package com.mygdx.bird;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
@@ -19,8 +21,10 @@ public class Obstacles {
     Array<Rectangle> obstacles;
     Array<LavaCascada> lavaList;
     long timeForLavaFall;
+    Music lavaSound;
 
     public Obstacles() {
+        lavaSound= Gdx.audio.newMusic(Gdx.files.internal("lava1.wav"));
         lavaFall = new Texture(Gdx.files.internal("cascadaLava.png"));
         pipeUpImage = new Texture(Gdx.files.internal("pipe_up.png"));
         pipeDownImage = new Texture(Gdx.files.internal("pipe_down.png"));
@@ -54,7 +58,7 @@ public class Obstacles {
         lava.height = 300;
         lava.width = 50;
         lava.x = 800;
-        if (Math.random()>0.5){
+        if (Math.random()>0.6){
             lava.y = -480;
             lavaList.add(new LavaCascada(lava,(-250)+(int)Math.random()*-200));
         }else{
@@ -67,6 +71,7 @@ public class Obstacles {
     }
 
     public void update(float xVelocity, long obstacleTime) {
+        if (!lavaSound.isPlaying())lavaSound.play();
         Iterator<Rectangle> iter = obstacles.iterator();
         while (iter.hasNext()) {
             Rectangle tuberia = iter.next();
@@ -123,6 +128,12 @@ public class Obstacles {
 
         }
 
+    }
+    public void dispose(){
+         lavaFall.dispose();
+         pipeUpImage.dispose();
+         pipeDownImage.dispose();
+         lavaSound.dispose();
     }
 }
 

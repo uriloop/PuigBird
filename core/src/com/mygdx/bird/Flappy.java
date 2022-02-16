@@ -1,6 +1,7 @@
 package com.mygdx.bird;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -20,21 +21,19 @@ public class Flappy {
     boolean dead = false;
     boolean restart = false;
     private float divisioPlaneig;
-    private boolean planejant;
     private long timeFromFlap;
     private long timeFromUll;
     private long timeFoc;
-
     public long getEnergiaPlaneig() {
         return energiaPlaneig;
     }
-
     private long energiaPlaneig;
 
-
+    long flaploop;
 
     public Flappy() {
-        flap= Gdx.audio.newSound(Gdx.files.internal("pickupCoin.wav"));
+
+        flap= Gdx.audio.newSound(Gdx.files.internal("flap2Sound.wav"));
         energiaPlaneig = 1000;
         textures = new Texture[7];
         textures[0] = new Texture(Gdx.files.internal("bird.png"));
@@ -59,24 +58,25 @@ public class Flappy {
     public void setEnergiaPlaneig(long energiaPlaneig) {
         if (this.energiaPlaneig<1000)  this.energiaPlaneig += energiaPlaneig;
     }
-
-    public void render(SpriteBatch batch) {
+    boolean haComençatLoopFlap=false;
+    long loopId;
+    public void render(SpriteBatch batch, boolean jocPausat) {
 
         if (dead) {
             if (box.y > 480 + 45) {
                 restart = true;
-            } else {
-                box.y += 2;
-                box.x += 1;
+                flap.stop();
+                flap.dispose();
+            } else if (!jocPausat){
+                box.y += Math.random()*3;
+                box.x += Math.random()+2;
             }
-            flap.dispose();
         }
         batch.draw(actual, box.x, box.y);
     }
 
     public float update(float speedy, float gravity, float xVelocity) {
         if (dead) {
-
             actual = textures[2];
             speedy += 50;
             volaMort();
@@ -88,11 +88,11 @@ public class Flappy {
             }else if (TimeUtils.nanoTime()-timeFromUll>9000000000l) timeFromUll=TimeUtils.nanoTime();  entra en conflicte amb les altres animacions hauria de ferlo en totes les opcions*/
             if (TimeUtils.nanoTime() - flapTime > 100000000l) actual = textures[0];
 
-
             if (Gdx.input.justTouched()) {
                 speedy = 400f;
                 flapeja();
                 timeFromFlap= TimeUtils.nanoTime();
+
             /*Gdx.input.vibrate(300);    Falta mirar-s'ho  sino hi ha aixó
              // Get instance of Vibrator from current Context
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -141,13 +141,17 @@ public class Flappy {
     void volaMort() {
         if (TimeUtils.nanoTime() - flapTime > 55555555) {
             if (actual.equals(textures[3])) actual = textures[2];
-            else actual = textures[3];
+            else {
+                actual = textures[3];
+                flap.play();
+            }
             flapTime = TimeUtils.nanoTime();
         }
     }
 
     private void planeigMoviment() {
         if (TimeUtils.nanoTime() - tempsAleteigPlanejant > 55555555) {
+            flap.play();
             if (actual.equals(textures[1])) actual = textures[0];
             else actual = textures[1];
             tempsAleteigPlanejant = TimeUtils.nanoTime();
@@ -157,7 +161,19 @@ public class Flappy {
     long tempsAleteigPlanejant = TimeUtils.nanoTime();
 
     void planeja() {
-        divisioPlaneig = 5f;
+
+        divisioPlaneig = 12f;
         actual = textures[1];
+    }
+
+    public void dispose(){
+        for (Texture t :
+                textures) {
+            t.dispose();
+        }
+
+        flap.dispose();
+         actual.dispose();
+
     }
 }

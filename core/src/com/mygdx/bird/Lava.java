@@ -28,8 +28,15 @@ public class Lava {
         }
     }
     public  void render(SpriteBatch batch){
-
         batch.draw(lava,0,0);
 
+    }
+
+    public void dispose() {
+        for (Texture t :
+                lavas) {
+            t.dispose();
+        }
+        lava.dispose();
     }
 }

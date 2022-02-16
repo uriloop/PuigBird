@@ -2,6 +2,7 @@ package com.mygdx.bird;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -20,19 +21,19 @@ public class GameScreen implements Screen {
     Flappy flappy;
     Lava lava;
     OrthographicCamera camera;
-
+    Music gameOver;
     Texture pauseT;
     Rectangle pause;
     float speedy;
     float speedyEvil;
     float gravity;
     float score;
-
     Texture falconImage;
     Rectangle falcon;
     boolean evilBird;
     Obstacles obstacles;
     long obstacleTime;
+    Music backgroundMusic;
 
 
     float xVelocity;
@@ -41,14 +42,16 @@ public class GameScreen implements Screen {
     private boolean jocPausat;
 
     public GameScreen(final Bird gam) {
+        gameOver = Gdx.audio.newMusic(Gdx.files.internal("gameOverMusic.mp3"));
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
         pauseT = new Texture(Gdx.files.internal("pause.png"));
-
         evilBird = false;
         falconImage = new Texture(Gdx.files.internal("evilBird.png"));
         falcon = new Rectangle();
         falcon.width = 64;
         falcon.height = 45;
         this.game = gam;
+        game.menuMusic.stop();
         flappy = new Flappy();
         speedy = 0;
         gravity = 850f;
@@ -64,6 +67,7 @@ public class GameScreen implements Screen {
         pause.x = 700;
         pause.height = 64;
         pause.width = 64;
+        backgroundMusic.setLooping(true);
 
     }
 
@@ -78,17 +82,42 @@ public class GameScreen implements Screen {
 
     }
 
-    private void update() {
-        if (jocPausat) {
 
-        } else {
+    boolean haComencatMusica = false;
+
+    private void update() {
+backgroundMusic.setVolume(0.8f);
+        if (!backgroundMusic.isLooping()) backgroundMusic.setLooping(true);
+        if (!haComencatMusica) {
+            backgroundMusic.play();
+            haComencatMusica = true;
+        }
+        if (jocPausat) {
+            /// *****
             if (Gdx.input.justTouched()) {
                 Vector3 touchPos = new Vector3();
                 touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
                 camera.unproject(touchPos);
                 // Ara touchPos conté les coordenades a on l'usuari ha tocat en x,y
 
-                if (touchPos.equals(pause)) {
+                if (pause.contains(touchPos.x, touchPos.y)) {
+                    // Akí el que sigui que faci que pari
+                    pause();
+
+                }
+            }
+        } else {
+            if (flappy.dead) {
+                backgroundMusic.stop();
+                gameOver.play();
+            }
+            if (Gdx.input.justTouched()) {
+                Vector3 touchPos = new Vector3();
+                touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+                camera.unproject(touchPos);
+                // Ara touchPos conté les coordenades a on l'usuari ha tocat en x,y
+
+                if (pause.contains(touchPos.x, touchPos.y)) {
                     // Akí el que sigui que faci que pari
                     pause();
 
@@ -109,6 +138,7 @@ public class GameScreen implements Screen {
             if (flappy.restart) {
                 game.score = (int) score;
                 game.setScreen(new GameOverScreen(game));
+
                 dispose();
             }
 
@@ -190,7 +220,7 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0.2f, 0, 0, 1);
 
         background.render(game.batch);
-        flappy.render(game.batch);
+        flappy.render(game.batch, jocPausat);
         obstacles.render(game.batch);
         lava.render(game.batch);
         if (evilBird) {
@@ -218,6 +248,14 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
+        jocPausat = !jocPausat;
+        if (jocPausat) {
+            backgroundMusic.pause();
+            game.menuMusic.play();
+        } else {
+            game.menuMusic.stop();
+            backgroundMusic.play();
+        }
     }
 
     @Override
@@ -226,7 +264,13 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-
+        backgroundMusic.dispose();
+        background.dispose();
+        obstacles.dispose();
+        flappy.dispose();
+        lava.dispose();
+        pauseT.dispose();
+        falconImage.dispose();
 
     }
 }

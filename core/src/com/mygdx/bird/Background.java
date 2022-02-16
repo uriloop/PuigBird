@@ -44,4 +44,11 @@ public class Background {
         batch.draw(actual,x,y);
     }
 
+    public void dispose() {
+        for (Texture t:
+             texture) {
+            t.dispose();
+        }
+        actual.dispose();
+    }
 }
